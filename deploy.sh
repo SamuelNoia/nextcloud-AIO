@@ -110,14 +110,15 @@ BASE_VELOCIDADE="${PATH_VELOCIDADE%/}/${NOME_PASTA}/performance"
 BASE_MASSA="${PATH_MASSA%/}/${NOME_PASTA}/arquivos"
 
 echo -e "\n${AMARELO}Criando diretórios físicos estruturados...${NC}"
-# O comando mkdir -p já previne falhas se os diretórios já existirem
 sudo mkdir -p "$BASE_VELOCIDADE/postgres"
+sudo mkdir -p "$BASE_VELOCIDADE/app_system"
 sudo mkdir -p "$BASE_VELOCIDADE/npm/config"
 sudo mkdir -p "$BASE_VELOCIDADE/npm/letsencrypt"
 sudo mkdir -p "$BASE_MASSA"
 
 # Garante a permissão correta de escrita para o container (UID 33)
 sudo chown -R 33:33 "$BASE_MASSA"
+sudo chown -R 33:33 "$BASE_VELOCIDADE/app_system"
 
 echo -e "${VERDE}✔ Estrutura de Performance verificada/criada em: $BASE_VELOCIDADE${NC}"
 echo -e "${VERDE}✔ Estrutura de Arquivos verificada/criada em: $BASE_MASSA${NC}\n"
@@ -162,7 +163,7 @@ services:
       - $REDE_NOME
 
   nextcloud-app:
-    image: nextcloud:production-fpm
+    image: nextcloud:production
     container_name: nextcloud-app
     restart: always
     depends_on:
@@ -215,6 +216,8 @@ EOF
 echo -e "${VERDE}✔ Arquivo docker-compose.yml configurado perfeitamente!${NC}"
 echo -e "${AMARELO}Iniciando a stack de containers...${NC}"
 
+# Remove os containers antigos para forçar a nova imagem HTTP rodar limpa
+sudo docker compose down --remove-orphans
 sudo docker compose up -d
 
 echo -e "\n${VERDE}=======================================================${NC}"
